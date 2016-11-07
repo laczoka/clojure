@@ -1801,13 +1801,18 @@
 (defn exercise-fn
   "exercises the fn named by sym (a symbol) by applying it to
   n (default 10) generated samples of its args spec. When fspec is
-  supplied its arg spec is used, and sym-or-f can be a fn.  Returns a
-  sequence of tuples of [args ret]. "
+  supplied its arg spec is used, and sym-or-f can be a fn.  
+  Alternatively, it accepts a custom generator which will be used 
+  to generate the samples.
+  Returns a sequence of tuples of [args ret]. "
   ([sym] (exercise-fn sym 10))
   ([sym n] (exercise-fn sym n (get-spec sym)))
-  ([sym-or-f n fspec]
-     (let [f (if (symbol? sym-or-f) (resolve sym-or-f) sym-or-f)]
-       (for [args (gen/sample (gen (:args fspec)) n)]
+  ([sym-or-f n fspec-or-gen]
+   (let [generator (if-let [argspec (:args fspec-or-gen)]
+                     (gen argspec)
+                     fspec-or-gen)
+         f (if (symbol? sym-or-f) (resolve sym-or-f) sym-or-f)]
+       (for [args (gen/sample generator n)]
          [args (apply f args)]))))
 
 (defn inst-in-range?
